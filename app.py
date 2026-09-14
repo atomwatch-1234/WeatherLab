@@ -8,12 +8,19 @@
 
 import os
 import sys
+import json
 import time
 import datetime
 import pandas as pd
 import numpy as np
 from flask import Flask, jsonify, request, render_template, send_from_directory
 from flask_cors import CORS
+
+# Set Thailand / Bangkok Timezone (UTC+7)
+os.environ["TZ"] = "Asia/Bangkok"
+if hasattr(time, "tzset"):
+    time.tzset()
+BKK_TZ = datetime.timezone(datetime.timedelta(hours=7))
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -347,7 +354,7 @@ def api_forecast_future():
     # Forecast file timestamp
     cache_file = os.path.join(DATA_DIR, "openmeteo_forecast_cb4.json")
     mtime = os.path.getmtime(cache_file) if os.path.exists(cache_file) else time.time()
-    dt_updated = datetime.datetime.fromtimestamp(mtime)
+    dt_updated = datetime.datetime.fromtimestamp(mtime, tz=BKK_TZ)
     thai_months = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."]
     th_time = f"{dt_updated.hour:02d}:{dt_updated.minute:02d}:{dt_updated.second:02d}"
     th_str = f"{dt_updated.day} {thai_months[dt_updated.month - 1]} {dt_updated.year + 543} เวลา {th_time} น."
@@ -426,7 +433,7 @@ def api_weather_hourly():
         sub_w['temp_val'] = sub_w['ambient_temp']
         sub_w['w_code'] = sub_w['weather_code'] if 'weather_code' in sub_w.columns else -1
 
-    current_hour_now = datetime.datetime.now().hour
+    current_hour_now = datetime.datetime.now(BKK_TZ).hour
 
     hourly_cards = []
     for _, r in sub_w.iterrows():

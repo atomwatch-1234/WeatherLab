@@ -1,4 +1,4 @@
-﻿services:
+services:
   - type: web
     name: solar-ml-dashboard
     runtime: python
@@ -7,3 +7,5 @@
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
+      - key: TZ
+        value: Asia/Bangkok
