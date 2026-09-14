@@ -69,7 +69,8 @@ function switchTab(tabId) {
     }
   } else if (tabId === 'tab-weather-24h') {
     const wSel = document.getElementById("weatherDateSelect");
-    const dateToLoad = (wSel && wSel.value) ? wSel.value : "today";
+    const dateToLoad = (wSel && wSel.value && wSel.dataset.manualSelect === "true") ? wSel.value : "today";
+    if (wSel && dateToLoad === "today") wSel.value = "today";
     loadWeather24h(dateToLoad);
     if (weather24hChart) setTimeout(() => weather24hChart.resize(), 50);
   } else if (tabId === 'tab-simulator') {
@@ -292,6 +293,8 @@ async function loadDates() {
         histGroup.appendChild(wOpt);
       });
       wSel.appendChild(histGroup);
+      wSel.value = "today";
+      wSel.dataset.manualSelect = "false";
     }
 
     loadCurvesForDate(defaultDate);
@@ -311,7 +314,6 @@ function syncMasterDate(date) {
   }
 
   const sel = document.getElementById("dateSelect");
-  const wSel = document.getElementById("weatherDateSelect");
   const valSel = document.getElementById("valDateSelect");
   const ncSel = document.getElementById("nowcastDateSelect");
 
@@ -320,7 +322,6 @@ function syncMasterDate(date) {
     if (valSel && valSel.value !== date) valSel.value = date;
     if (ncSel && ncSel.value !== date) ncSel.value = date;
   }
-  if (wSel && wSel.value !== date) wSel.value = date;
 
   // Determine active tab to reload its view immediately
   const activeTab = document.querySelector(".tab-content:not(.hidden)");
@@ -333,17 +334,21 @@ function syncMasterDate(date) {
   } else if (activeTabId === "tab-simulator") {
     loadNowcastSim(nowcastSimDate, nowcastSimHour, nowcastSimTarget);
   } else if (activeTabId === "tab-weather-24h") {
-    loadWeather24h(date);
+    const wSel = document.getElementById("weatherDateSelect");
+    const targetWeather = (wSel && wSel.value && wSel.dataset.manualSelect === "true") ? wSel.value : "today";
+    loadWeather24h(targetWeather);
   } else {
     loadCurvesForDate(currentDate);
   }
 }
 
 function onWeatherDateChange(val) {
-  loadWeather24h(val);
-  if (val !== "today") {
-    currentDate = val;
+  const wSel = document.getElementById("weatherDateSelect");
+  if (wSel) {
+    wSel.value = val;
+    wSel.dataset.manualSelect = (val !== "today") ? "true" : "false";
   }
+  loadWeather24h(val);
 }
 
 function syncWeatherDate(date) {
