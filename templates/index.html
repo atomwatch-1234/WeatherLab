@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full bg-slate-50">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solar Intelligence & Forecasting Lab — 5-Model Tournament (CB4 18.72 kWp)</title>
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '"Sarabun"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            solar: {
+              DEFAULT: '#f59e0b',
+              50: '#fffbeb',
+              100: '#fef3c7',
+              500: '#f59e0b',
+              600: '#d97706',
+            },
+            sky: {
+              DEFAULT: '#0284c7',
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0284c7',
+              600: '#0369a1',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-800">
+
+  <!-- ==================== MAIN WRAPPER ==================== -->
+  <div class="mx-auto flex w-full max-w-7xl flex-col gap-5 px-2.5 py-4 sm:px-6 lg:px-8 lg:py-8 flex-1">
+
+    <!-- 1. TOPBAR -->
+    <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-3.5">
+        <div class="flex size-12 items-center justify-center rounded-2xl bg-amber-500 text-white shadow-md shadow-amber-500/20">
+          <!-- Solar Sun Icon -->
+          <svg class="size-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="4" fill="currentColor"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h1 class="text-xl font-bold tracking-tight text-slate-900">Solar Intelligence & Forecasting Lab</h1>
+            <span class="rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700 border border-amber-200">18.72 kWp (CB4)</span>
+          </div>
+          <p class="text-xs font-medium text-slate-500">5-Model Tournament Arena · String Analytics (PV1–4) · 100% Open-Meteo AI Forecaster</p>
+        </div>
+      </div>
+
+      <!-- Topbar Badges -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs text-slate-600 shadow-sm font-medium">
+          <span class="size-2 rounded-full bg-sky-500 animate-pulse"></span>
+          <span>5 ML Models Active</span>
+        </span>
+        <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 text-xs font-bold text-emerald-700 shadow-sm">
+          <svg class="size-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+          Open-Meteo Live API
+        </span>
+      </div>
+    </header>
+
+    <!-- 2. PILL TAB SWITCHER NAVIGATION -->
+    <nav role="tablist" class="flex w-full gap-1 overflow-x-auto rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-sm">
+      <button onclick="switchTab('tab-arena')" id="tab-btn-arena"
+        class="tab-btn active flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all duration-200 bg-sky-600 text-white shadow-sm">
+        <svg class="size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+        </svg>
+        <span>1. ภาพรวม 5 โมเดล (Arena)</span>
+      </button>
+
+      <button onclick="switchTab('tab-curves')" id="tab-btn-curves"
+        class="tab-btn flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-all duration-200">
+        <svg class="size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+        </svg>
+        <span>2. ประชันกราฟ 123 วัน (แยกสตริง)</span>
+      </button>
+
+      <button onclick="switchTab('tab-future')" id="tab-btn-future"
+        class="tab-btn flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-all duration-200">
+        <span class="size-2 rounded-full bg-emerald-500 animate-ping mr-0.5"></span>
+        <svg class="size-4 shrink-0 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span class="text-emerald-700 font-bold">3. พยากรณ์ล่วงหน้า 7 วัน</span>
+        <span class="rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.5 text-[9px] font-extrabold uppercase">Live AI</span>
+      </button>
+
+      <button onclick="switchTab('tab-simulator')" id="tab-btn-simulator"
+        class="tab-btn flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-all duration-200">
+        <svg class="size-4 shrink-0 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span class="text-indigo-700 font-bold">4. ทดลองทาย 1 ชม. ล่วงหน้า</span>
+        <span class="rounded-full bg-indigo-100 text-indigo-800 border border-indigo-300 px-1.5 py-0.2 text-[9px] font-extrabold">Nowcast</span>
+      </button>
+
+      <button onclick="switchTab('tab-weather-24h')" id="tab-btn-weather-24h"
+        class="tab-btn flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-all duration-200">
+        <svg class="size-4 shrink-0 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="4" fill="currentColor"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+        </svg>
+        <span>5. สภาพอากาศ 24 ชม.</span>
+      </button>
+    </nav>
+
+    <!-- TAB 1: MODEL BATTLE ARENA (5 Models Summary) -->
+    <section id="tab-arena" class="tab-content flex flex-col gap-6">
+      
+      <!-- 5 Model Cards Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        
+        <!-- Card 1: Linear Regression -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 card-shadow flex flex-col justify-between">
+          <div>
+            <div class="flex items-start justify-between">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Model 1 (Baseline)</span>
+                <h3 class="text-sm font-bold text-slate-900 mt-0.5">Linear Regression</h3>
+                <p class="text-[11px] text-slate-500">สมการเส้นตรง (รุ่นพี่เดิม)</p>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200">Baseline</span>
+            </div>
+            <div class="mt-3 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2">
+              <div>
+                <div class="text-[10px] font-medium text-slate-400">R² Score</div>
+                <div class="text-lg font-bold font-mono-nums text-amber-600" id="m1-r2">0.8289</div>
+              </div>
+              <div>
+                <div class="text-[10px] font-medium text-slate-400">RMSE</div>
+                <div class="text-lg font-bold font-mono-nums text-slate-800" id="m1-rmse">1.36 kW</div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 text-[10px] text-slate-400 border-t border-slate-50 flex justify-between">
+            <span>ชนะ 3 วัน (2.4%)</span>
+            <span>Latency &lt; 0.1 ms</span>
+          </div>
+        </div>
+
+        <!-- Card 2: ANN / MLP -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 card-shadow flex flex-col justify-between">
+          <div>
+            <div class="flex items-start justify-between">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-purple-600">Model 2</span>
+                <h3 class="text-sm font-bold text-slate-900 mt-0.5">ANN (MLP)</h3>
+                <p class="text-[11px] text-slate-500">Neural Network 64, 32</p>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-50 text-purple-700 border border-purple-200">Neural</span>
+            </div>
+            <div class="mt-3 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2">
+              <div>
+                <div class="text-[10px] font-medium text-slate-400">R² Score</div>
+                <div class="text-lg font-bold font-mono-nums text-purple-600" id="m2-r2">0.8783</div>
+              </div>
+              <div>
+                <div class="text-[10px] font-medium text-slate-400">RMSE</div>
+                <div class="text-lg font-bold font-mono-nums text-slate-800" id="m2-rmse">1.18 kW</div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 text-[10px] text-slate-400 border-t border-slate-50 flex justify-between">
+            <span>ชนะ 4 วัน (3.3%)</span>
+            <span>Non-linear Fit</span>
+          </div>
+        </div>
+
+        <!-- Card 3: LSTM -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 card-shadow flex flex-col justify-between">
+          <div>
+            <div class="flex items-start justify-between">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Model 3</span>
+                <h3 class="text-sm font-bold text-slate-900 mt-0.5">LSTM</h3>
+                <p class="text-[11px] text-slate-500">Sequence Recurrent Net</p>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">Recurrent</span>
+            </div>
+            <div class="mt-3 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2">
+              <div>
+                <div class="text-[10px] font-medium text-slate-400">R² Score</div>
+                <div class="text-lg font-bold font-mono-nums text-indigo-600" id="m3-r2">0.7902</div>
+              </div>
+              <div>
+                <div class="text-[10px] font-medium text-slate-400">RMSE</div>
+                <div class="text-lg font-bold font-mono-nums text-slate-800" id="m3-rmse">1.51 kW</div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 text-[10px] text-slate-400 border-t border-slate-50 flex justify-between">
+            <span>ชนะ 8 วัน (6.5%)</span>
+            <span>Time-Lag Aware</span>
+          </div>
+        </div>
+
+        <!-- Card 4: Random Forest (CHAMPION) -->
+        <div class="bg-white rounded-2xl border-2 border-sky-400 p-4 card-shadow flex flex-col justify-between relative overflow-hidden bg-gradient-to-b from-sky-50/40 to-white">
+          <div class="absolute -right-5 -top-5 size-16 bg-sky-500/10 rounded-full blur-sm pointer-events-none"></div>
+          <div>
+            <div class="flex items-start justify-between">
+              <div>
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-sky-600 flex items-center gap-1">
+                  👑 Model 4 (Champion)
+                </span>
+                <h3 class="text-sm font-extrabold text-slate-900 mt-0.5">Random Forest</h3>
+                <p class="text-[11px] text-slate-500">100 Trees Bagging Ensemble</p>
+              </div>
+              <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-sky-600 text-white shadow-sm">แชมป์ 77 วัน</span>
+            </div>
+            <div class="mt-3 pt-3 border-t border-sky-100 grid grid-cols-2 gap-2">
+              <div>
+                <div class="text-[10px] font-semibold text-slate-500">R² สูงสุด</div>
+                <div class="text-xl font-extrabold font-mono-nums text-sky-600" id="m4-r2">0.9541</div>
+              </div>
+              <div>
+                <div class="text-[10px] font-semibold text-slate-500">RMSE ต่ำสุด</div>
+                <div class="text-xl font-extrabold font-mono-nums text-slate-900" id="m4-rmse">0.78 kW</div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 text-[10px] text-sky-700 font-bold border-t border-sky-100 flex justify-between">
+            <span>ชนะ 77 วัน (62.6%)</span>
+            <span>ทนเมฆผันผวนสูงสุด</span>
+          </div>
+        </div>
+
+        <!-- Card 5: HistGBDT -->
+        <div class="bg-white rounded-2xl border-2 border-emerald-400 p-4 card-shadow flex flex-col justify-between relative overflow-hidden bg-gradient-to-b from-emerald-50/40 to-white">
+          <div>
+            <div class="flex items-start justify-between">
+              <div>
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 flex items-center gap-1">
+                  ⚡ Model 5 (Weather)
+                </span>
+                <h3 class="text-sm font-extrabold text-slate-900 mt-0.5">HistGBDT</h3>
+                <p class="text-[11px] text-slate-500">Physics & Diffuse Aware</p>
+              </div>
+              <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-600 text-white shadow-sm">แชมป์ฟ้าปิด</span>
+            </div>
+            <div class="mt-3 pt-3 border-t border-emerald-100 grid grid-cols-2 gap-2">
+              <div>
+                <div class="text-[10px] font-semibold text-slate-500">R² Score</div>
+                <div class="text-xl font-extrabold font-mono-nums text-emerald-600" id="m5-r2">0.9464</div>
+              </div>
+              <div>
+                <div class="text-[10px] font-semibold text-slate-500">RMSE</div>
+                <div class="text-xl font-extrabold font-mono-nums text-slate-900" id="m5-rmse">0.88 kW</div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 text-[10px] text-emerald-800 font-bold border-t border-emerald-100 flex justify-between">
+            <span>ชนะ 31 วัน (25.2%)</span>
+            <span>ลด False Alarm 57.7%</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Comparison Summary Bar Chart -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 card-shadow">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <svg class="size-5 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+              </svg>
+              สรุปผลการประเมินความแม่นยำตลอด 123 วัน (Tournament Benchmark)
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">เปรียบเทียบค่าความผิดพลาด RMSE และ MAE ยิ่งต่ำยิ่งแม่นยำ (หน่วย: กิโลวัตต์ kW)</p>
+          </div>
+        </div>
+        <div class="h-72 relative">
+          <canvas id="metricsComparisonChart"></canvas>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- TAB 2: PREDICTION VS ACTUAL CURVES (5-Model Historical Tournament) -->
+    <section id="tab-curves" class="tab-content hidden flex flex-col gap-5">
+      
+      <!-- Daily Winner & 5-Model Scorecard Banner -->
+      <div id="dailyWinnerCard" class="bg-white rounded-2xl border border-slate-200 p-4 card-shadow flex flex-col lg:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="size-11 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 text-2xl font-bold shadow-sm" id="day-winner-icon">
+            🏆
+          </div>
+          <div>
+            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">การประชัน 5 โมเดลประจำวันที่เลือก (5-Model Daily Scorecard)</div>
+            <div class="text-base font-bold text-slate-900 flex items-center gap-2 mt-0.5" id="day-winner-title">
+              กำลังวิเคราะห์...
+            </div>
+          </div>
+        </div>
+        
+        <!-- 5 Mini Comparison Pills -->
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <div class="px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 font-mono-nums text-[11px]" id="day-m1-pill">
+            <span class="text-amber-600 font-sans font-semibold mr-1">M1 Linear:</span> RMSE -- kW
+          </div>
+          <div class="px-2.5 py-1.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-800 font-mono-nums text-[11px]" id="day-m2-pill">
+            <span class="text-purple-600 font-sans font-semibold mr-1">M2 ANN:</span> RMSE -- kW
+          </div>
+          <div class="px-2.5 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-800 font-mono-nums text-[11px]" id="day-m3-pill">
+            <span class="text-indigo-600 font-sans font-semibold mr-1">M3 LSTM:</span> RMSE -- kW
+          </div>
+          <div class="px-2.5 py-1.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-800 font-mono-nums text-[11px]" id="day-m4-pill">
+            <span class="text-sky-600 font-sans font-semibold mr-1">M4 RF 🌲:</span> RMSE -- kW
+          </div>
+          <div class="px-2.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 font-bold font-mono-nums text-[11px]" id="day-m5-pill">
+            <span class="text-emerald-700 font-sans font-semibold mr-1">M5 GBDT ⚡:</span> RMSE -- kW
+          </div>
+        </div>
+      </div>
+      
+      <!-- Filter & Date Controls -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-4 card-shadow flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center space-x-3">
+          <label for="dateSelect" class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+            <svg class="size-4 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+            </svg>
+            เลือกวันที่วิเคราะห์:
+          </label>
+          <select id="dateSelect" class="bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-xl px-3 py-2 font-medium focus:ring-2 focus:ring-sky-500 outline-none cursor-pointer" onchange="syncMasterDate(this.value)">
+            <!-- Populated via JS -->
+          </select>
+          <span id="dateBadge" class="text-xs px-2.5 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-mono-nums font-semibold">
+            กำลังโหลด...
+          </span>
+        </div>
+
+        <!-- Visibility Toggles (6 datasets: Actual + 5 Models) -->
+        <div class="flex flex-wrap items-center gap-1.5 text-xs">
+          <button class="curve-toggle active px-2.5 py-1 rounded-lg border border-slate-400 bg-slate-800 text-white font-bold text-[11px]" onclick="toggleDataset(0, this)">
+            <span class="w-2 h-2 rounded-full inline-block bg-white mr-1"></span> Actual (จริง)
+          </button>
+          <button class="curve-toggle active px-2.5 py-1 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 font-semibold text-[11px]" onclick="toggleDataset(1, this)">
+            <span class="w-2 h-2 rounded-full inline-block bg-amber-500 mr-1"></span> Linear
+          </button>
+          <button class="curve-toggle active px-2.5 py-1 rounded-lg border border-purple-300 bg-purple-50 text-purple-800 font-semibold text-[11px]" onclick="toggleDataset(2, this)">
+            <span class="w-2 h-2 rounded-full inline-block bg-purple-500 mr-1"></span> ANN
+          </button>
+          <button class="curve-toggle active px-2.5 py-1 rounded-lg border border-indigo-300 bg-indigo-50 text-indigo-800 font-semibold text-[11px]" onclick="toggleDataset(3, this)">
+            <span class="w-2 h-2 rounded-full inline-block bg-indigo-500 mr-1"></span> LSTM
+          </button>
+          <button class="curve-toggle active px-2.5 py-1 rounded-lg border border-sky-300 bg-sky-50 text-sky-800 font-bold text-[11px]" onclick="toggleDataset(4, this)">
+            <span class="w-2 h-2 rounded-full inline-block bg-sky-500 mr-1"></span> Random Forest 👑
+          </button>
+          <button class="curve-toggle active px-2.5 py-1 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-800 font-bold text-[11px]" onclick="toggleDataset(5, this)">
+            <span class="w-2 h-2 rounded-full inline-block bg-emerald-500 mr-1"></span> HistGBDT ⚡
+          </button>
+        </div>
+
+        <!-- String & Total Selector Buttons -->
+        <div class="w-full pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2 overflow-x-auto">
+            <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5 whitespace-nowrap">
+              <svg class="size-4 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+              เลือกระดับมุมมอง:
+            </span>
+            <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200/80 gap-1">
+              <button id="target-btn-total" onclick="selectTarget('total')"
+                class="target-btn active px-3 py-1.5 text-xs font-bold rounded-lg bg-sky-600 text-white shadow-sm transition-all duration-150">
+                🌐 รวมทั้งระบบ (18.72 kWp)
+              </button>
+              <button id="target-btn-pv1" onclick="selectTarget('pv1')"
+                class="target-btn px-3 py-1.5 text-xs font-medium rounded-lg text-slate-600 hover:text-slate-900 transition-all duration-150">
+                ⚡ PV1 (4.68 kWp)
+              </button>
+              <button id="target-btn-pv2" onclick="selectTarget('pv2')"
+                class="target-btn px-3 py-1.5 text-xs font-medium rounded-lg text-slate-600 hover:text-slate-900 transition-all duration-150">
+                ⚡ PV2 (4.68 kWp)
+              </button>
+              <button id="target-btn-pv3" onclick="selectTarget('pv3')"
+                class="target-btn px-3 py-1.5 text-xs font-medium rounded-lg text-slate-600 hover:text-slate-900 transition-all duration-150">
+                ⚡ PV3 (4.68 kWp)
+              </button>
+              <button id="target-btn-pv4" onclick="selectTarget('pv4')"
+                class="target-btn px-3 py-1.5 text-xs font-medium rounded-lg text-slate-600 hover:text-slate-900 transition-all duration-150">
+                ⚡ PV4 (4.68 kWp)
+              </button>
+            </div>
+          </div>
+          <span id="targetBadge" class="text-xs px-2.5 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-medium">
+            มุมมองปัจจุบัน: รวมทั้งระบบ
+          </span>
+        </div>
+      </div>
+
+      <!-- Main High-Resolution Dual-Y Chart -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-3 sm:p-5 card-shadow">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <svg class="size-5 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
+              </svg>
+              กราฟเส้นเปรียบเทียบกำลังการผลิตจริง vs ค่าทำนายทั้ง 5 โมเดล
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">แกนซ้าย: กำลังผลิต (kW) | แกนขวา: ความเข้มแสง Irradiance (W/m²)</p>
+          </div>
+        </div>
+        <div class="h-80 sm:h-96 relative">
+          <canvas id="curvesComparisonChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Day Statistics Cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow">
+          <div class="text-[11px] font-semibold text-slate-400">พลังงานที่ผลิตได้จริงทั้งวัน</div>
+          <div class="text-xl font-bold font-mono-nums text-emerald-600 mt-1" id="day-actual-kwh">-- kWh</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow">
+          <div class="text-[11px] font-semibold text-slate-400">ความเข้มแสงแดดสูงสุด</div>
+          <div class="text-xl font-bold font-mono-nums text-amber-600 mt-1" id="day-peak-irr">-- W/m²</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow">
+          <div class="text-[11px] font-semibold text-slate-400">ปริมาณเมฆเฉลี่ย</div>
+          <div class="text-xl font-bold font-mono-nums text-sky-600 mt-1" id="day-avg-cloud">-- %</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow">
+          <div class="text-[11px] font-semibold text-slate-400">สถานะสภาพอากาศประจำวัน</div>
+          <div class="text-xs font-bold text-slate-700 mt-1.5" id="day-cloud-events">--</div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- TAB 3: 100% OPEN-METEO FUTURE SOLAR FORECASTER (NEW) -->
+    <section id="tab-future" class="tab-content hidden flex flex-col gap-6">
+      
+      <!-- Forecaster Header & Control Bar -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-4 card-shadow flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="size-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <h3 class="text-base font-bold text-slate-900">ระบบทำนายกำลังผลิตล่วงหน้า (100% Open-Meteo AI Forecast)</h3>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">พิกัดดาดฟ้า CB4 มจธ. บางมด (13.6515 N, 100.4952 E) · พยากรณ์สดรายชั่วโมง 7 วันข้างหน้า</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Last updated badge -->
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
+            <svg class="size-3.5 text-sky-600 animate-spin-slow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>ดึงข้อมูลล่าสุดเมื่อ:</span>
+            <b class="text-slate-800 font-mono-nums font-bold" id="fc-last-updated-badge">กำลังโหลด...</b>
+          </span>
+
+          <!-- Target selector -->
+          <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 gap-1 text-xs">
+            <button onclick="changeFutureTarget('total')" id="future-tgt-total" class="px-2.5 py-1 rounded-lg bg-sky-600 text-white font-bold shadow-sm">
+              ทั้งระบบ (18.72 kWp)
+            </button>
+            <button onclick="changeFutureTarget('pv1')" id="future-tgt-pv1" class="px-2.5 py-1 rounded-lg text-slate-600 font-medium hover:text-slate-900">
+              PV1
+            </button>
+            <button onclick="changeFutureTarget('pv2')" id="future-tgt-pv2" class="px-2.5 py-1 rounded-lg text-slate-600 font-medium hover:text-slate-900">
+              PV2
+            </button>
+            <button onclick="changeFutureTarget('pv3')" id="future-tgt-pv3" class="px-2.5 py-1 rounded-lg text-slate-600 font-medium hover:text-slate-900">
+              PV3
+            </button>
+            <button onclick="changeFutureTarget('pv4')" id="future-tgt-pv4" class="px-2.5 py-1 rounded-lg text-slate-600 font-medium hover:text-slate-900">
+              PV4
+            </button>
+          </div>
+
+          <!-- Refresh button -->
+          <button onclick="reloadFutureForecast(true)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-sm cursor-pointer">
+            <svg class="size-3.5 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            ดึงข้อมูลสดใหม่
+          </button>
+        </div>
+      </div>
+
+      <!-- 3 Hero Forecast KPI Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        
+        <!-- Card 1: Today Forecast -->
+        <div class="bg-white rounded-2xl border-2 border-amber-300 p-5 card-shadow flex flex-col justify-between relative overflow-hidden bg-gradient-to-b from-amber-50/40 to-white">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-amber-700">พยากรณ์วันนี้ (Today)</span>
+              <span class="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold" id="fc-today-condition">--</span>
+            </div>
+            <div class="mt-3">
+              <div class="text-xs text-slate-500">พลังงานคาดการณ์ทั้งวัน (Expected Yield)</div>
+              <div class="text-3xl font-extrabold font-mono-nums text-amber-600 mt-1" id="fc-today-kwh">-- kWh</div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-amber-100 grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <span class="text-slate-400">Peak Power:</span>
+                <span class="font-bold text-slate-800 font-mono-nums block" id="fc-today-peak">-- kW</span>
+              </div>
+              <div>
+                <span class="text-slate-400">ช่วงแดดจัด:</span>
+                <span class="font-bold text-slate-800 font-mono-nums block" id="fc-today-time">--:--</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 text-[11px] text-slate-500 border-t border-slate-100 flex justify-between">
+            <span id="fc-today-date">--</span>
+            <span class="text-amber-700 font-semibold">Random Forest Engine</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Tomorrow Forecast -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 card-shadow flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">พยากรณ์วันพรุ่งนี้ (Tomorrow)</span>
+              <span class="text-xs px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 font-semibold" id="fc-tmrw-condition">--</span>
+            </div>
+            <div class="mt-3">
+              <div class="text-xs text-slate-500">พลังงานคาดการณ์ทั้งวัน (Expected Yield)</div>
+              <div class="text-3xl font-extrabold font-mono-nums text-sky-600 mt-1" id="fc-tmrw-kwh">-- kWh</div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <span class="text-slate-400">Peak Power:</span>
+                <span class="font-bold text-slate-800 font-mono-nums block" id="fc-tmrw-peak">-- kW</span>
+              </div>
+              <div>
+                <span class="text-slate-400">ช่วงแดดจัด:</span>
+                <span class="font-bold text-slate-800 font-mono-nums block" id="fc-tmrw-time">--:--</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 text-[11px] text-slate-500 border-t border-slate-100 flex justify-between">
+            <span id="fc-tmrw-date">--</span>
+            <span class="text-slate-400">วางแผนโหลดล่วงหน้า</span>
+          </div>
+        </div>
+
+        <!-- Card 3: 7-Day Total Yield -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 card-shadow flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">ภาพรวม 7 วันข้างหน้า</span>
+              <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-bold">7-Day Outlook</span>
+            </div>
+            <div class="mt-3">
+              <div class="text-xs text-slate-500">รวมพลังงานสะอาดที่คาดว่าจะผลิตได้</div>
+              <div class="text-3xl font-extrabold font-mono-nums text-emerald-600 mt-1" id="fc-7d-total-kwh">-- kWh</div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <span class="text-slate-400">เฉลี่ยต่อวัน:</span>
+                <span class="font-bold text-slate-800 font-mono-nums block" id="fc-7d-avg-kwh">-- kWh/วัน</span>
+              </div>
+              <div>
+                <span class="text-slate-400">ประหยัดค่าไฟ:</span>
+                <span class="font-bold text-emerald-700 font-mono-nums block" id="fc-7d-saving">~ -- บาท</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 text-[11px] text-slate-500 border-t border-slate-100 flex justify-between">
+            <span>คำนวณจากค่าไฟ 4.40 บ./หน่วย</span>
+            <span class="text-emerald-700 font-semibold">Clean Energy</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Future Generation Curve Chart -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-3 sm:p-5 card-shadow">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <svg class="size-5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+              </svg>
+              กราฟทำนายกำลังผลิตไฟฟ้ารายชั่วโมงล่วงหน้า (Future Power Forecast Curve)
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">แกนซ้าย: กำลังผลิตทำนาย (kW) | แกนขวา: ความเข้มแสงแดด GHI (W/m²) และโอกาสฝนตก (%)</p>
+          </div>
+
+          <!-- Range Switcher -->
+          <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 gap-1 text-xs">
+            <button onclick="setForecastRange(24)" id="fc-range-24" class="px-3 py-1 rounded-lg text-slate-600 font-medium hover:text-slate-900">
+              24 ชม. (วันนี้)
+            </button>
+            <button onclick="setForecastRange(48)" id="fc-range-48" class="px-3 py-1 rounded-lg text-slate-600 font-medium hover:text-slate-900">
+              48 ชม. (วันนี้+พรุ่งนี้)
+            </button>
+            <button onclick="setForecastRange(168)" id="fc-range-168" class="px-3 py-1 rounded-lg bg-white text-slate-900 font-bold shadow-sm">
+              7 วันเต็ม (168 ชม.)
+            </button>
+          </div>
+        </div>
+
+        <!-- Model Visibility Toggles for Future Forecast -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 pb-3 border-t border-slate-100">
+          <div class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+            <svg class="size-3.5 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+            <span>เลือกเส้นกราฟที่ต้องการแสดงผล:</span>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5 text-xs">
+            <button id="fc-toggle-0" class="curve-toggle active px-2.5 py-1 rounded-lg border border-sky-400 bg-sky-600 text-white font-bold text-[11px] shadow-sm transition-all" onclick="toggleFutureDataset(0, this)">
+              <span class="w-2 h-2 rounded-full inline-block bg-white mr-1"></span> Random Forest 👑
+            </button>
+            <button id="fc-toggle-1" class="curve-toggle active px-2.5 py-1 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-800 font-bold text-[11px] transition-all" onclick="toggleFutureDataset(1, this)">
+              <span class="w-2 h-2 rounded-full inline-block bg-emerald-500 mr-1"></span> HistGBDT ⚡
+            </button>
+            <button id="fc-toggle-2" class="curve-toggle px-2.5 py-1 rounded-lg border border-amber-300 bg-white text-slate-600 font-medium text-[11px] transition-all" onclick="toggleFutureDataset(2, this)">
+              <span class="w-2 h-2 rounded-full inline-block bg-amber-500 mr-1"></span> Linear Baseline
+            </button>
+            <button id="fc-toggle-3" class="curve-toggle active px-2.5 py-1 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 font-semibold text-[11px] transition-all" onclick="toggleFutureDataset(3, this)">
+              <span class="w-2 h-2 rounded-full inline-block bg-amber-500 mr-1"></span> GHI แดด (W/m²)
+            </button>
+            <button id="fc-toggle-4" class="curve-toggle px-2.5 py-1 rounded-lg border border-slate-300 bg-white text-slate-600 font-medium text-[11px] transition-all" onclick="toggleFutureDataset(4, this)">
+              <span class="w-2 h-2 rounded-full inline-block bg-slate-400 mr-1"></span> โอกาสฝนตก (%)
+            </button>
+            <button id="fc-toggle-5" class="curve-toggle active px-2.5 py-1 rounded-lg border border-indigo-300 bg-indigo-50 text-indigo-800 font-bold text-[11px] transition-all" onclick="toggleFutureDataset(5, this)">
+              <span class="w-2 h-2 rounded-full inline-block bg-indigo-600 mr-1"></span> 1-Hour Nowcast (Sun-Angle) 📐
+            </button>
+          </div>
+        </div>
+
+        <div class="h-96 relative">
+          <canvas id="futureForecastChart"></canvas>
+        </div>
+      </div>
+
+      <!-- 7-Day Outlook Cards Grid -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 card-shadow">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-1">
+          <h4 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <svg class="size-4 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+            </svg>
+            การ์ดพยากรณ์พลังงานรายวัน 7 วันข้างหน้า (7-Day Daily Energy Cards)
+          </h4>
+          <span class="text-xs text-slate-500 flex items-center gap-1.5 font-medium">
+            <span>🕒 อิงข้อมูลพยากรณ์สด ณ วันที่:</span>
+            <b class="text-sky-700 font-mono-nums font-bold" id="fc-cards-updated-time">กำลังโหลด...</b>
+          </span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3" id="futureDailyCardsContainer">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- HISTORICAL VALIDATION & CALIBRATION LAB (NEW SECTION) -->
+      <div class="bg-white rounded-2xl border-2 border-indigo-200 p-3 sm:p-5 card-shadow flex flex-col gap-5">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="size-10 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 text-xl font-bold">
+              🔬
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-base font-bold text-slate-900">ห้องทดสอบความแม่นยำ: Open-Meteo vs ค่าจริงย้อนหลัง (Validation Lab)</h3>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">123 Days Historical Test</span>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">พิสูจน์ความต่างระหว่างหัวเซนเซอร์หน้างาน vs ข้อมูลดาวเทียม Open-Meteo พร้อมทดสอบการปรับจูนแบบ Rolling Forecast ทุกชั่วโมง</p>
+            </div>
+          </div>
+
+          <!-- Controls for Validation -->
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-2">
+              <label for="valDateSelect" class="text-xs font-bold text-slate-700">เลือกวันทดสอบ:</label>
+              <select id="valDateSelect" class="bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-xl px-3 py-1.5 font-medium focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer" onchange="syncMasterDate(this.value)">
+                <!-- Populated via JS -->
+              </select>
+            </div>
+
+            <!-- Resolution Switcher (5m vs 1h) -->
+            <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 gap-1 text-xs">
+              <button onclick="setValidationResolution('5m')" id="val-res-5m" class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-bold shadow-sm transition-all">
+                ⏱️ 5 นาที (5-Min)
+              </button>
+              <button onclick="setValidationResolution('1h')" id="val-res-1h" class="px-2.5 py-1 rounded-lg text-slate-600 font-medium hover:text-slate-900 transition-all">
+                🕒 ราย 1 ชม. (Hourly)
+              </button>
+            </div>
+
+            <!-- Validation Target Selector -->
+            <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 gap-1 text-xs">
+              <button onclick="changeValTarget('total')" id="val-tgt-total" class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-bold shadow-sm">
+                ทั้งระบบ (18.72 kWp)
+              </button>
+              <button onclick="changeValTarget('pv1')" id="val-tgt-pv1" class="px-2.5 py-1 rounded-lg text-slate-600 font-medium hover:text-slate-900">
+                PV1
+              </button>
+              <button onclick="changeValTarget('pv2')" id="val-tgt-pv2" class="px-2.5 py-1 rounded-lg text-slate-600 font-medium hover:text-slate-900">
+                PV2
+              </button>
+              <button onclick="changeValTarget('pv3')" id="val-tgt-pv3" class="px-2.5 py-1 rounded-lg text-slate-600 font-medium hover:text-slate-900">
+                PV3
+              </button>
+              <button onclick="changeValTarget('pv4')" id="val-tgt-pv4" class="px-2.5 py-1 rounded-lg text-slate-600 font-medium hover:text-slate-900">
+                PV4
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Validation Winner Banner -->
+        <div id="valWinnerBanner" class="p-3.5 rounded-xl border border-indigo-200 bg-gradient-to-r from-indigo-50/80 via-white to-indigo-50/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+          <div class="flex items-center gap-2.5">
+            <span class="text-2xl" id="val-winner-emoji">🏆</span>
+            <div>
+              <div class="text-sm font-extrabold text-slate-900" id="val-winner-badge">ผลการตัดสินความแม่นยำประจำวัน</div>
+              <div class="text-[11px] text-slate-600 mt-0.5" id="val-winner-reason">กำลังวิเคราะห์ความแม่นยำเทียบจุดต่อจุดทุก 5 นาที...</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0 text-xs font-mono-nums font-bold">
+            <span class="px-3 py-1 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-xs" id="val-winner-stat">--</span>
+          </div>
+        </div>
+
+        <!-- 4 Validation KPI Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Card 1: Irradiance Difference -->
+          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70">
+            <div class="text-[11px] font-semibold text-slate-500">แสงแดดจริง vs Open-Meteo GHI</div>
+            <div class="flex items-baseline gap-2 mt-1">
+              <span class="text-xl font-bold font-mono-nums text-slate-900" id="val-s-irr">-- W/m²</span>
+              <span class="text-xs font-mono-nums text-amber-600" id="val-om-irr">(OM: --)</span>
+            </div>
+            <div class="text-[10px] text-slate-500 mt-1" id="val-irr-bias">ส่วนต่างเฉลี่ย: --%</div>
+          </div>
+
+          <!-- Card 2: Ground Truth Sensor RMSE -->
+          <div class="p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/50">
+            <div class="text-[11px] font-semibold text-emerald-800">1. ใช้หัวเซนเซอร์จริง (Sensor Ground Truth)</div>
+            <div class="text-xl font-extrabold font-mono-nums text-emerald-700 mt-1" id="val-sensor-rmse">-- kW</div>
+            <div class="text-[10px] text-emerald-700 mt-1" id="val-sensor-r2">R²: --% | วัดตรงจากหลังคา</div>
+          </div>
+
+          <!-- Card 3: Raw Open-Meteo RMSE -->
+          <div class="p-3.5 rounded-xl border border-amber-200 bg-amber-50/50">
+            <div class="text-[11px] font-semibold text-amber-800">2. ใช้ Open-Meteo ดิบ (Raw Satellite/NWP)</div>
+            <div class="text-xl font-extrabold font-mono-nums text-amber-700 mt-1" id="val-raw-rmse">-- kW</div>
+            <div class="text-[10px] text-amber-700 mt-1" id="val-raw-r2">R²: --% | คลาดเคลื่อนจากเมฆเฉพาะจุด</div>
+          </div>
+
+          <!-- Card 4: Calibrated Rolling Forecast (The Solution) -->
+          <div class="p-3.5 rounded-xl border-2 border-indigo-400 bg-gradient-to-b from-indigo-50/80 to-white relative overflow-hidden">
+            <div class="text-[11px] font-extrabold text-indigo-900 flex items-center justify-between">
+              <span>3. ปรับจูน Rolling ราย ชม. ⭐</span>
+              <span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-600 text-white font-bold" id="val-imp-badge">+--%</span>
+            </div>
+            <div class="text-xl font-extrabold font-mono-nums text-indigo-700 mt-1" id="val-cal-rmse">-- kW</div>
+            <div class="text-[10px] text-indigo-800 font-semibold mt-1" id="val-cal-r2">R²: --% | ดึงค่าความแม่นยำกลับมา</div>
+          </div>
+        </div>
+
+        <!-- Validation Comparison Chart -->
+        <div>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2 text-xs">
+            <span class="font-bold text-slate-700">เปรียบเทียบ 4 เส้นกราฟ (คลิกปุ่มเพื่อเปิด/ปิดเส้น):</span>
+            <div class="flex flex-wrap items-center gap-1.5" id="val-legend-toggles">
+              <button id="val-toggle-0" class="curve-toggle active px-2 py-1 rounded-lg border border-slate-400 bg-slate-900 text-white font-bold text-[11px] shadow-xs transition-all flex items-center gap-1.5 cursor-pointer" onclick="toggleValidationDataset(0, this)">
+                <span class="w-2.5 h-1 bg-white inline-block rounded"></span> ค่าผลิตจริง
+              </button>
+              <button id="val-toggle-1" class="curve-toggle active px-2 py-1 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-800 font-bold text-[11px] shadow-xs transition-all flex items-center gap-1.5 cursor-pointer" onclick="toggleValidationDataset(1, this)">
+                <span class="w-2.5 h-1 bg-emerald-500 inline-block rounded"></span> ทำนายจากเซนเซอร์หลังคา
+              </button>
+              <button id="val-toggle-2" class="curve-toggle active px-2 py-1 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 font-bold text-[11px] shadow-xs transition-all flex items-center gap-1.5 cursor-pointer" onclick="toggleValidationDataset(2, this)">
+                <span class="w-2.5 h-1 bg-amber-500 inline-block rounded"></span> ทำนายจาก Open-Meteo ดิบ
+              </button>
+              <button id="val-toggle-3" class="curve-toggle active px-2 py-1 rounded-lg border border-indigo-300 bg-indigo-50 text-indigo-800 font-bold text-[11px] shadow-xs transition-all flex items-center gap-1.5 cursor-pointer" onclick="toggleValidationDataset(3, this)">
+                <span class="w-2.5 h-1 bg-indigo-600 inline-block rounded"></span> ปรับจูน Rolling 1 ชม. ⭐
+              </button>
+            </div>
+          </div>
+          <div class="h-80 relative">
+            <canvas id="validationComparisonChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Technical Insight Footer -->
+        <div class="p-3.5 rounded-xl bg-indigo-50/60 border border-indigo-100 flex items-start gap-2.5 text-xs text-indigo-950">
+          <svg class="size-5 shrink-0 text-indigo-600 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <div>
+            <span class="font-bold">สรุปผลการวิจัยทางเทคนิค:</span> ข้อมูล Open-Meteo กับหัวเซนเซอร์ต่างกันหลักๆ ที่ <b>ความเข้มแสงแดด (GHI) และเมฆเฉพาะจุด</b> เนื่องจากดาวเทียมเป็นกริดเฉลี่ยระดับตำบล ทำให้จับเมฆก้อนเล็กที่ลอยผ่านดาดฟ้าตึก CB4 ชั่วคราวไม่ทัน แต่เมื่อนำระบบ <b>Dynamic Rolling Error Feedback (ทำนายใหม่ทุกชั่วโมง)</b> มาชดเชยค่าความคลาดเคลื่อน จะสามารถดึงค่าความแม่นยำ $R^2$ กลับขึ้นมาสู่ระดับ <b>85%</b> ได้โดยไม่ต้องมีเซนเซอร์บนหลังคา!
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- TAB 4: 1-HOUR AHEAD NOWCAST LAB (TIME-TRAVEL BLIND TEST) -->
+    <section id="tab-simulator" class="tab-content hidden flex flex-col gap-6">
+      
+      <!-- Top Control Bar -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 card-shadow flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-base font-extrabold text-slate-900">ห้องทดลองทำนายล่วงหน้า 1 ชั่วโมง (1-Hour Ahead Nowcast Lab)</h3>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">Time-Travel Blind Test</span>
+          </div>
+          <p class="text-xs text-slate-500 mt-1">
+            จำลองเวลาปัจจุบัน (<b class="text-slate-700">t</b>) — โมเดล <b class="text-indigo-600">1-Hour Nowcast</b> จะใช้เฉพาะค่าไฟปัจจุบันและพยากรณ์ล่วงหน้าเพื่อเดาชั่วโมงถัดไป (<b class="text-indigo-600">t+1</b>) 🔒 <u>ห้ามดูเฉลยล่วงหน้า</u>
+          </p>
+        </div>
+
+        <!-- Controls: Date & Target -->
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-2">
+            <label for="nowcastDateSelect" class="text-xs font-bold text-slate-700">เลือกวันทดสอบ:</label>
+            <select id="nowcastDateSelect" class="bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-xl px-3 py-1.5 font-medium focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer" onchange="syncMasterDate(this.value)">
+              <!-- Populated via JS -->
+            </select>
+          </div>
+
+          <!-- Target Selector -->
+          <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 gap-1 text-xs">
+            <button onclick="changeNowcastTarget('total')" id="nc-tgt-total" class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-bold shadow-sm">
+              ทั้งระบบ (18.72 kWp)
+            </button>
+            <button onclick="changeNowcastTarget('pv1')" id="nc-tgt-pv1" class="px-2.5 py-1 rounded-lg text-slate-600 font-medium hover:text-slate-900">
+              PV1
+            </button>
+            <button onclick="changeNowcastTarget('pv2')" id="nc-tgt-pv2" class="px-2.5 py-1 rounded-lg text-slate-600 font-medium hover:text-slate-900">
+              PV2
+            </button>
+            <button onclick="changeNowcastTarget('pv3')" id="nc-tgt-pv3" class="px-2.5 py-1 rounded-lg text-slate-600 font-medium hover:text-slate-900">
+              PV3
+            </button>
+            <button onclick="changeNowcastTarget('pv4')" id="nc-tgt-pv4" class="px-2.5 py-1 rounded-lg text-slate-600 font-medium hover:text-slate-900">
+              PV4
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Timeline Bar (Hours 06:00 to 17:00) -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-4 card-shadow">
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+            <span>⏱️ จำลองเวลาปัจจุบัน (Current Time t):</span>
+            <span id="nc-timeline-badge" class="px-2 py-0.5 rounded-md bg-indigo-600 text-white font-mono-nums font-bold text-xs">10:00 น.</span>
+          </div>
+          <button onclick="stepNowcastHour(1)" class="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold hover:bg-indigo-100 transition-all cursor-pointer">
+            <span>ก้าวไป 1 ชม. ถัดไป</span>
+            <svg class="size-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1" id="nowcastHourPills">
+          <!-- Populated by JS for hours 6 to 17 -->
+        </div>
+      </div>
+
+      <!-- Main Dual Cards (Current Hour t vs Next Hour Target t+1) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        
+        <!-- Left: Current Hour t Status -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 card-shadow flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">สถานะ ณ เวลาปัจจุบัน (t)</span>
+              <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 font-mono-nums font-extrabold text-xs" id="nc-cur-time-pill">10:00 น.</span>
+            </div>
+
+            <div class="mt-4">
+              <div class="text-xs text-slate-500 font-medium">กำลังผลิตจริงที่ Inverter ผลิตได้ ณ ตอนนี้:</div>
+              <div class="text-3xl font-extrabold font-mono-nums text-slate-900 mt-1" id="nc-cur-act">-- kW</div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-slate-100 text-xs font-mono-nums">
+              <div class="p-2 rounded-xl bg-slate-50">
+                <div class="text-[10px] text-slate-400">แดด Open-Meteo</div>
+                <div class="font-bold text-slate-700 mt-0.5" id="nc-cur-ghi">-- W/m²</div>
+              </div>
+              <div class="p-2 rounded-xl bg-slate-50">
+                <div class="text-[10px] text-slate-400">เมฆปกคลุม</div>
+                <div class="font-bold text-slate-700 mt-0.5" id="nc-cur-cloud">--%</div>
+              </div>
+              <div class="p-2 rounded-xl bg-slate-50">
+                <div class="text-[10px] text-slate-400">อุณหภูมิอากาศ</div>
+                <div class="font-bold text-slate-700 mt-0.5" id="nc-cur-temp">-- °C</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 p-3 rounded-xl bg-slate-100/80 border border-slate-200 text-xs text-slate-700 flex items-start gap-2">
+            <span class="text-base">🔄</span>
+            <div>
+              <div class="font-bold">Dynamic Feedback จากชั่วโมงปัจจุบัน:</div>
+              <div class="text-[11px] text-slate-600 mt-0.5" id="nc-cur-bias-desc">คำนวณส่วนต่างระหว่างค่าจริง vs แดดดาวเทียมเพื่อชดเชยล่วงหน้า</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: 1-Hour Ahead Prediction (Blind) -->
+        <div class="bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-900 rounded-2xl border border-indigo-700/50 p-5 text-white card-shadow flex flex-col justify-between relative overflow-hidden">
+          <div class="absolute -right-8 -bottom-8 w-40 h-40 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
+                <span class="size-2 rounded-full bg-indigo-400 animate-pulse"></span>
+                เป้าหมายพยากรณ์: ชั่วโมงถัดไป (t+1)
+              </span>
+              <span class="px-2.5 py-1 rounded-lg bg-indigo-800/80 text-indigo-100 font-mono-nums font-extrabold text-xs border border-indigo-600/50" id="nc-tgt-time-pill">11:00 น.</span>
+            </div>
+
+            <div class="mt-4">
+              <div class="text-xs text-indigo-200 font-medium">โมเดล 1-Hour Nowcast เดาว่าจะผลิตไฟได้:</div>
+              <div class="text-4xl font-black font-mono-nums text-indigo-300 mt-1 tracking-tight" id="nc-tgt-pred">-- kW</div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-indigo-800/60 text-xs font-mono-nums">
+              <div class="p-2 rounded-xl bg-indigo-950/60 border border-indigo-800/40">
+                <div class="text-[10px] text-indigo-300/80">แดดล่วงหน้า Open-Meteo</div>
+                <div class="font-bold text-white mt-0.5" id="nc-tgt-ghi">-- W/m²</div>
+              </div>
+              <div class="p-2 rounded-xl bg-indigo-950/60 border border-indigo-800/40">
+                <div class="text-[10px] text-indigo-300/80">ตัวคูณมุมแดดของคุณ</div>
+                <div class="font-bold text-amber-300 mt-0.5" id="nc-tgt-mult">x --</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 p-2.5 rounded-xl bg-indigo-950/80 border border-indigo-700/50 text-[11px] text-indigo-200 flex items-center gap-2">
+            <span>🔒</span>
+            <span>ห้ามดูเฉลย! โมเดลคำนวณจากแดดล่วงหน้า + Feedback ปัจจุบันเท่านั้น</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action: Reveal Truth & Accuracy Section -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 card-shadow flex flex-col gap-4">
+        
+        <!-- Big Reveal Button Box -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3" id="nc-reveal-prompt-box">
+          <div>
+            <div class="text-sm font-extrabold text-slate-900">อยากรู้ไหมว่าโมเดล 1-Hour Nowcast เดาแม่นกี่เปอร์เซ็นต์?</div>
+            <div class="text-xs text-slate-500 mt-0.5">กดปุ่มเพื่อเฉลยว่า Inverter ผลิตไฟได้จริงเท่าไร และคำนวณค่าความแม่นยำออกมาทันที</div>
+          </div>
+          <button onclick="revealNowcastTruth()" id="nc-reveal-btn" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-sky-600 text-white font-bold text-sm shadow-md hover:from-indigo-700 hover:to-sky-700 transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0">
+            <span>🎯 เปิดดูเฉลยค่าจริง & ตรวจความแม่นยำ</span>
+          </button>
+        </div>
+
+        <!-- The Revealed Result Card (Hidden by default, shown on reveal) -->
+        <div id="nc-reveal-result" class="hidden flex flex-col gap-4 pt-4 border-t border-slate-100 transition-all">
+          
+          <div class="p-4 rounded-xl border border-indigo-200 bg-gradient-to-r from-indigo-50/70 via-white to-emerald-50/70 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <span class="text-3xl" id="nc-result-emoji">🏆</span>
+              <div>
+                <div class="text-sm font-extrabold text-slate-900" id="nc-result-badge">ผลลัพธ์การทำนาย</div>
+                <div class="text-xs text-slate-600 mt-0.5" id="nc-result-detail">--</div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 text-right">
+              <div>
+                <div class="text-[11px] text-slate-500 font-semibold">ความแม่นยำ (Accuracy)</div>
+                <div class="text-3xl font-black font-mono-nums text-emerald-600" id="nc-result-acc">--%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4 Stat Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono-nums">
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-[10px] text-slate-500">โมเดลเดาไว้ (Predicted)</div>
+              <div class="text-lg font-bold text-indigo-700 mt-1" id="nc-stat-pred">-- kW</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-[10px] text-slate-500">ค่าจริงที่ผลิตได้ (Actual)</div>
+              <div class="text-lg font-bold text-slate-900 mt-1" id="nc-stat-act">-- kW</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-[10px] text-slate-500">ส่วนต่างความคลาดเคลื่อน (Error)</div>
+              <div class="text-lg font-bold text-amber-600 mt-1" id="nc-stat-err">-- kW</div>
+              <div class="text-[10px] text-slate-400 mt-0.5" id="nc-stat-watt">(-- W)</div>
+            </div>
+            <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex flex-col justify-center items-center text-center">
+              <button onclick="stepNowcastHour(1)" class="w-full py-2 rounded-lg bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition-all cursor-pointer shadow-xs">
+                ⏩ ทายชั่วโมงถัดไป
+              </button>
+            </div>
+          </div>
+
+          <!-- Comparison Progress Visual -->
+          <div class="space-y-1.5 pt-2">
+            <div class="flex justify-between text-xs font-semibold">
+              <span class="text-slate-600">เปรียบเทียบระดับกำลังไฟฟ้า:</span>
+              <span class="text-slate-500 font-mono-nums text-[11px]" id="nc-progress-label">โมเดล vs ค่าจริง</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden flex border border-slate-200">
+              <div id="nc-bar-pred" class="h-full bg-indigo-500 transition-all duration-500" style="width: 50%;"></div>
+              <div id="nc-bar-act" class="h-full bg-slate-900 transition-all duration-500" style="width: 50%;"></div>
+            </div>
+            <div class="flex justify-between text-[10px] text-slate-400">
+              <span>🔵 แท่งสีม่วง: โมเดลเดา</span>
+              <span>⚫ แท่งสีเข้ม: ของจริง</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Mini Timeline Chart of the Day -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-3 sm:p-5 card-shadow">
+        <div class="flex items-center justify-between mb-3 text-xs">
+          <span class="font-bold text-slate-700">เส้นทางการผลิตทั้งวัน (06:00 - 18:00 น.):</span>
+          <div class="flex items-center gap-3 text-[11px]">
+            <span class="inline-flex items-center gap-1 text-slate-800 font-bold"><span class="w-2.5 h-1 bg-slate-900 inline-block rounded"></span> ค่าจริงช่วงที่ผ่านมา</span>
+            <span class="inline-flex items-center gap-1 text-indigo-700 font-bold"><span class="w-2.5 h-1 bg-indigo-600 inline-block rounded"></span> จุดที่ 1-Hour Nowcast เดา (t+1)</span>
+          </div>
+        </div>
+        <div class="h-72 sm:h-80 relative">
+          <canvas id="nowcastSimChart"></canvas>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- TAB 5: 24-HOUR HOURLY WEATHER PROFILE -->
+    <section id="tab-weather-24h" class="tab-content hidden flex flex-col gap-6">
+      
+      <!-- Date Selector for Weather -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-4 card-shadow flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-3">
+          <label for="weatherDateSelect" class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+            <svg class="size-4 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+            </svg>
+            เลือกวันที่ตรวจดูสภาพอากาศ:
+          </label>
+          <select id="weatherDateSelect" class="bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-xl px-3 py-2 font-medium focus:ring-2 focus:ring-sky-500 outline-none cursor-pointer" onchange="onWeatherDateChange(this.value)">
+            <!-- Populated via JS -->
+          </select>
+          <button onclick="loadWeather24h('today')" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs">
+            <span class="size-2 rounded-full bg-rose-500 animate-pulse"></span>
+            <span>ดูวันนี้ล่าสุด (Live)</span>
+          </button>
+          <span id="weatherDateBadge" class="text-xs px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-mono-nums font-semibold">
+            24 ชั่วโมง (00:00 - 23:00)
+          </span>
+        </div>
+        <div class="text-xs text-slate-500 font-medium">
+          พิกัด: CB4 มจธ. บางมด (13.6515, 100.4952) · แหล่งข้อมูล: Open-Meteo (สดวันนี้ + ย้อนหลัง)
+        </div>
+      </div>
+
+      <!-- Weather Summary 4 Cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow">
+          <div class="text-[11px] font-semibold text-slate-400">ความเข้มแสงแดดสูงสุด (Peak GHI)</div>
+          <div class="text-2xl font-bold font-mono-nums text-amber-600 mt-1" id="w-peak-ghi">-- W/m²</div>
+          <div class="text-[10px] text-slate-400 mt-1">Global Horizontal Irradiance</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow">
+          <div class="text-[11px] font-semibold text-slate-400">พลังงานแสงแดดสะสมทั้งวัน</div>
+          <div class="text-2xl font-bold font-mono-nums text-sky-600 mt-1" id="w-total-energy">-- kWh/m²</div>
+          <div class="text-[10px] text-slate-400 mt-1">Total Solar Insolation</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow">
+          <div class="text-[11px] font-semibold text-slate-400">ปริมาณเมฆปกคลุมเฉลี่ย</div>
+          <div class="text-2xl font-bold font-mono-nums text-slate-700 mt-1" id="w-avg-cloud">--%</div>
+          <div class="text-[10px] text-slate-500 font-medium mt-1" id="w-cloud-desc">กำลังคำนวณ...</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow">
+          <div class="text-[11px] font-semibold text-slate-400">ช่วงอุณหภูมิอากาศ</div>
+          <div class="text-2xl font-bold font-mono-nums text-rose-600 mt-1" id="w-temp-range">-- °C</div>
+          <div class="text-[10px] text-slate-400 mt-1">Min - Max Ambient Temp</div>
+        </div>
+      </div>
+
+      <!-- 24-Hour Radiation & Weather Chart -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-3 sm:p-5 card-shadow">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <span class="size-2 rounded-full bg-amber-500"></span>
+            กราฟวิเคราะห์ความเข้มแสงแดดและสภาพอากาศตลอด 24 ชั่วโมง (Solar Irradiance Profile)
+          </h3>
+          <span class="text-xs text-slate-400 font-medium">GHI, DNI, DHI, Temp & Cloud Cover</span>
+        </div>
+        <div class="h-80 sm:h-96 relative">
+          <canvas id="weather24hChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Hourly Weather Chips (00:00 - 23:00) -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-4 card-shadow">
+        <div class="text-xs font-bold text-slate-700 mb-3 flex items-center gap-1.5">
+          <span>ไทม์ไลน์สภาพอากาศและแสงแดดรายชั่วโมง:</span>
+          <span class="text-[10px] text-slate-400 font-normal">(เลื่อนแนวนอนเพื่อดูครบ 24 ชั่วโมง)</span>
+        </div>
+        <div id="hourlyCardsContainer" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-12 gap-2 overflow-x-auto pb-1">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Detailed Hourly Weather Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 card-shadow overflow-hidden">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-800">ตารางข้อมูลสภาพอากาศรายชั่วโมง (Open-Meteo Satellite Feed)</h3>
+          <span class="text-xs text-slate-400 font-medium">ความละเอียดราย 1 ชม.</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+              <tr>
+                <th class="px-3 py-2.5">เวลา (ชั่วโมง)</th>
+                <th class="px-3 py-2.5 text-center">สภาพอากาศ</th>
+                <th class="px-3 py-2.5 text-center">GHI (W/m²)</th>
+                <th class="px-3 py-2.5 text-center">DNI (W/m²)</th>
+                <th class="px-3 py-2.5 text-center">DHI (W/m²)</th>
+                <th class="px-3 py-2.5 text-center">เมฆ (%)</th>
+                <th class="px-3 py-2.5 text-center">อุณหภูมิ (°C)</th>
+              </tr>
+            </thead>
+            <tbody id="hourlyWeatherTableBody" class="divide-y divide-slate-100 font-mono-nums">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>
