@@ -1480,7 +1480,7 @@ function renderHourlyChips(cards, weatherData) {
       <span class="text-xs font-bold font-mono-nums ${c.ghi > 0 ? (isCurrent ? 'text-rose-600' : 'text-amber-600') : 'text-slate-400'}">${c.ghi} <span class="text-[9px] font-normal">W/m²</span></span>
       <div class="flex items-center justify-between w-full mt-1.5 pt-1.5 border-t border-slate-200/70 text-[10px] font-mono-nums">
         <span class="text-slate-600">${c.temp}°C</span>
-        <span class="${isRainHigh ? 'px-1 rounded bg-sky-100 text-sky-700 font-bold' : 'text-slate-400'}">💧${rainP}%</span>
+        <span class="${isRainHigh ? 'text-sky-600 font-bold' : 'text-slate-400'}">💧${rainP}%</span>
       </div>
       <div class="text-[9px] text-slate-400 mt-0.5 font-mono-nums">☁️ เมฆ ${c.cloud}%</div>
     </div>
