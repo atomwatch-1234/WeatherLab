@@ -210,14 +210,23 @@ def map_wmo_code(code, avg_cloud=50.0, rain_prob=0):
     """
     Maps WMO Weather Code (World Meteorological Organization) to
     (emoji, icon_key, thai_description)
+    Dynamically calibrated with rain probability to avoid false alarms when sun is still shining.
     """
     if code in [95, 96, 99]:
+        if rain_prob < 35:
+            return "⛅", "sun-cloud", "มีเมฆเป็นส่วนมาก (เสี่ยงฝนฟ้าคะนอง)"
+        elif rain_prob < 55:
+            return "🌦️", "drizzle", "เมฆหนาแน่น มีโอกาสฝนฟ้าคะนอง"
         return "⛈️", "thunderstorm", "พายุฝนฟ้าคะนอง"
     elif code in [80, 81, 82]:
+        if rain_prob < 30:
+            return "⛅", "sun-cloud", "มีเมฆเป็นส่วนมาก"
         return "🌧️", "rain-heavy", "ฝนซู่กระจาย"
     elif code in [61, 63, 65]:
         return "🌧️", "rain", "ฝนตกปานกลาง"
     elif code in [51, 53, 55, 56, 57]:
+        if rain_prob < 25:
+            return "🌤️", "sun-small-cloud", "แดดดี มีเมฆบางส่วน"
         return "🌦️", "drizzle", "ฝนตกปรอยๆ เล็กน้อย"
     elif code in [71, 73, 75, 77, 85, 86]:
         return "❄️", "snow", "หิมะ / ลูกเห็บ"
@@ -226,7 +235,7 @@ def map_wmo_code(code, avg_cloud=50.0, rain_prob=0):
     elif code == 3:
         return "☁️", "cloud", "มืดครึ้ม ฟ้าปิด"
     elif code == 2:
-        return "⛅", "sun-cloud", "แดดสลับเมฆบางส่วน"
+        return "⛅", "sun-cloud", "มีเมฆเป็นส่วนมาก"
     elif code == 1:
         return "🌤️", "sun-small-cloud", "แดดดี มีเมฆเล็กน้อย"
     elif code == 0:
@@ -239,7 +248,7 @@ def map_wmo_code(code, avg_cloud=50.0, rain_prob=0):
         elif avg_cloud < 25:
             return "☀️", "sun", "แดดจัด ฟ้าเปิดแจ่มใส"
         elif avg_cloud < 60:
-            return "⛅", "sun-cloud", "แดดสลับเมฆบางส่วน"
+            return "⛅", "sun-cloud", "มีเมฆเป็นส่วนมาก"
         else:
             return "☁️", "cloud", "เมฆหนาแน่น"
 
@@ -417,6 +426,7 @@ def api_weather_hourly():
                 sub_w['dhi_val'] = sub_w['weather_dhi']
                 sub_w['cloud_val'] = sub_w['weather_cloud']
                 sub_w['temp_val'] = sub_w['weather_temp']
+                sub_w['rain_val'] = 0
                 sub_w['w_code'] = -1
 
     if sub_w.empty:
@@ -431,6 +441,7 @@ def api_weather_hourly():
         sub_w['dhi_val'] = sub_w['dhi']
         sub_w['cloud_val'] = sub_w['cloud_cover']
         sub_w['temp_val'] = sub_w['ambient_temp']
+        sub_w['rain_val'] = sub_w['rain_prob'] if 'rain_prob' in sub_w.columns else 0
         sub_w['w_code'] = sub_w['weather_code'] if 'weather_code' in sub_w.columns else -1
 
     current_hour_now = datetime.datetime.now(BKK_TZ).hour
@@ -442,6 +453,7 @@ def api_weather_hourly():
         ghi_val = float(r['ghi_val'])
         cloud_val = float(r['cloud_val'])
         temp_val = float(r['temp_val'])
+        rain_val = int(r['rain_val']) if ('rain_val' in r and pd.notna(r['rain_val'])) else 0
         w_code = int(r['w_code']) if pd.notna(r.get('w_code', -1)) else -1
         
         # Determine emoji and condition
@@ -450,7 +462,7 @@ def api_weather_hourly():
             cond = 'กลางคืน'
             emoji = '🌙'
         elif w_code > 0:
-            emoji, icon, cond = map_wmo_code(w_code, cloud_val, 0)
+            emoji, icon, cond = map_wmo_code(w_code, cloud_val, rain_val)
         elif cloud_val < 25 and ghi_val > 500:
             icon = 'sun'
             cond = 'แดดจัด ฟ้าโปร่ง'
@@ -473,12 +485,15 @@ def api_weather_hourly():
             "dni": int(round(float(r['dni_val']))),
             "dhi": int(round(float(r['dhi_val']))),
             "cloud": int(round(cloud_val)),
+            "rain_prob": rain_val,
             "temp": round(temp_val, 1),
             "icon": icon,
             "emoji": emoji,
             "condition": cond,
             "is_current": is_current_hour
         })
+
+    max_rain = int(sub_w['rain_val'].max()) if ('rain_val' in sub_w.columns and not sub_w.empty) else 0
 
     return jsonify({
         "status": "success",
@@ -492,6 +507,7 @@ def api_weather_hourly():
         "dni": sub_w['dni_val'].round(1).tolist(),
         "dhi": sub_w['dhi_val'].round(1).tolist(),
         "cloud_cover": sub_w['cloud_val'].round(1).tolist(),
+        "precipitation_probability": [int(x) for x in sub_w['rain_val'].tolist()] if 'rain_val' in sub_w.columns else [0] * len(sub_w),
         "temperature": sub_w['temp_val'].round(1).tolist(),
         "hourly_cards": hourly_cards,
         "summary": {
@@ -499,7 +515,8 @@ def api_weather_hourly():
             "total_solar_kwh_m2": round(float(sub_w['ghi_val'].sum() / 1000.0), 2),
             "avg_cloud": round(float(sub_w['cloud_val'].mean()), 1),
             "min_temp": round(float(sub_w['temp_val'].min()), 1),
-            "max_temp": round(float(sub_w['temp_val'].max()), 1)
+            "max_temp": round(float(sub_w['temp_val'].max()), 1),
+            "max_rain_prob": max_rain
         }
     })
 

@@ -1268,6 +1268,17 @@ async function loadWeather24h(date) {
     const elTemp = document.getElementById("w-temp-range");
     if (elTemp) elTemp.textContent = `${s.min_temp} - ${s.max_temp} °C`;
 
+    const elMaxRain = document.getElementById("w-max-rain");
+    if (elMaxRain) elMaxRain.textContent = `${s.max_rain_prob !== undefined ? s.max_rain_prob : 0}%`;
+    const rainDesc = document.getElementById("w-rain-desc");
+    if (rainDesc) {
+      const mr = s.max_rain_prob || 0;
+      if (mr >= 70) rainDesc.textContent = "🌧️ มีความเสี่ยงฝนตกสูง";
+      else if (mr >= 40) rainDesc.textContent = "🌦️ โอกาสฝนตกปานกลาง";
+      else if (mr >= 20) rainDesc.textContent = "⛅ มีโอกาสฝนโปรยเล็กน้อย";
+      else rainDesc.textContent = "☀️ โอกาสฝนต่ำ ท้องฟ้าโปร่ง";
+    }
+
     const cloudDesc = document.getElementById("w-cloud-desc");
     if (cloudDesc) {
       if (s.avg_cloud > 70) cloudDesc.textContent = "☁️ มีเมฆมากเกือบทั้งวัน";
@@ -1368,6 +1379,18 @@ function renderWeather24hChart(data) {
           fill: false,
           tension: 0.3,
           yAxisID: "y2"
+        },
+        {
+          label: "Precipitation Probability (โอกาสฝน %)",
+          data: data.precipitation_probability || [],
+          borderColor: "#0284c7",
+          backgroundColor: "rgba(2, 132, 199, 0.12)",
+          borderWidth: 2,
+          borderDash: [3, 3],
+          pointRadius: 1.5,
+          fill: true,
+          tension: 0.3,
+          yAxisID: "y2"
         }
       ]
     },
@@ -1417,7 +1440,10 @@ function renderWeather24hChart(data) {
         y2: {
           type: "linear",
           position: "right",
-          display: false,
+          display: true,
+          title: { display: true, text: "Cloud / Rain (%)", color: "#0284c7", font: { size: 10 } },
+          ticks: { color: "#0284c7", stepSize: 25 },
+          grid: { drawOnChartArea: false },
           min: 0,
           max: 100
         }
@@ -1444,16 +1470,19 @@ function renderHourlyChips(cards, weatherData) {
 
   container.innerHTML = cards.map(c => {
     const isCurrent = Boolean(c.is_current);
+    const rainP = c.rain_prob !== undefined ? c.rain_prob : 0;
+    const isRainHigh = rainP >= 30;
     return `
-    <div class="flex flex-col items-center justify-between p-2.5 rounded-xl border ${isCurrent ? 'border-2 border-rose-500 bg-rose-50/80 shadow-md ring-2 ring-rose-300/40 relative' : c.ghi > 600 ? 'border-amber-300 bg-amber-50/50' : 'border-slate-200 bg-slate-50/50'} text-center transition-all hover:shadow-md hover:border-sky-300">
+    <div class="flex flex-col items-center justify-between p-2 rounded-xl border ${isCurrent ? 'border-2 border-rose-500 bg-rose-50/80 shadow-md ring-2 ring-rose-300/40 relative' : c.ghi > 600 ? 'border-amber-300 bg-amber-50/50' : 'border-slate-200 bg-slate-50/50'} text-center transition-all hover:shadow-md hover:border-sky-300">
       ${isCurrent ? '<span class="absolute -top-2 px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[9px] font-black uppercase tracking-wider animate-pulse">ตอนนี้</span>' : ''}
       <span class="text-[11px] font-bold font-mono-nums ${isCurrent ? 'text-rose-700 font-black' : 'text-slate-700'}">${c.hour}</span>
       <span class="text-xl my-1">${c.emoji || getEmoji(c.icon)}</span>
       <span class="text-xs font-bold font-mono-nums ${c.ghi > 0 ? (isCurrent ? 'text-rose-600' : 'text-amber-600') : 'text-slate-400'}">${c.ghi} <span class="text-[9px] font-normal">W/m²</span></span>
-      <div class="flex items-center justify-between w-full mt-1.5 pt-1.5 border-t border-slate-200/70 text-[10px] text-slate-500 font-mono-nums">
-        <span>${c.temp}°C</span>
-        <span>☁️${c.cloud}%</span>
+      <div class="flex items-center justify-between w-full mt-1.5 pt-1.5 border-t border-slate-200/70 text-[10px] font-mono-nums">
+        <span class="text-slate-600">${c.temp}°C</span>
+        <span class="${isRainHigh ? 'px-1 rounded bg-sky-100 text-sky-700 font-bold' : 'text-slate-400'}">💧${rainP}%</span>
       </div>
+      <div class="text-[9px] text-slate-400 mt-0.5 font-mono-nums">☁️ เมฆ ${c.cloud}%</div>
     </div>
     `;
   }).join('');
@@ -1477,6 +1506,8 @@ function renderHourlyTable(cards, weatherData) {
 
   tbody.innerHTML = cards.map(c => {
     const isCurrent = Boolean(c.is_current);
+    const rainP = c.rain_prob !== undefined ? c.rain_prob : 0;
+    const isRainHigh = rainP >= 30;
     return `
     <tr class="hover:bg-slate-50 transition-colors ${isCurrent ? 'bg-rose-50/70 font-semibold' : c.ghi > 700 ? 'bg-amber-50/40' : ''}">
       <td class="px-3 py-2.5 font-bold text-slate-900 flex items-center gap-1.5">
@@ -1492,7 +1523,12 @@ function renderHourlyTable(cards, weatherData) {
       <td class="px-3 py-2.5 text-center font-bold text-amber-600">${c.ghi}</td>
       <td class="px-3 py-2.5 text-center text-slate-600">${c.dni}</td>
       <td class="px-3 py-2.5 text-center text-slate-600">${c.dhi}</td>
-      <td class="px-3 py-2.5 text-center text-sky-600 font-semibold">${c.cloud}%</td>
+      <td class="px-3 py-2.5 text-center text-slate-600 font-semibold">${c.cloud}%</td>
+      <td class="px-3 py-2.5 text-center">
+        <span class="inline-flex items-center gap-1 font-mono-nums ${isRainHigh ? 'px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 font-bold text-[11px]' : 'text-slate-400'}">
+          💧 ${rainP}%
+        </span>
+      </td>
       <td class="px-3 py-2.5 text-center font-semibold text-rose-600">${c.temp} °C</td>
     </tr>
     `;

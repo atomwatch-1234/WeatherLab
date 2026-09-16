@@ -1082,8 +1082,8 @@
         </div>
       </div>
 
-      <!-- Weather Summary 4 Cards -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <!-- Weather Summary 5 Cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow">
           <div class="text-[11px] font-semibold text-slate-400">ความเข้มแสงแดดสูงสุด (Peak GHI)</div>
           <div class="text-2xl font-bold font-mono-nums text-amber-600 mt-1" id="w-peak-ghi">-- W/m²</div>
@@ -1099,6 +1099,13 @@
           <div class="text-2xl font-bold font-mono-nums text-slate-700 mt-1" id="w-avg-cloud">--%</div>
           <div class="text-[10px] text-slate-500 font-medium mt-1" id="w-cloud-desc">กำลังคำนวณ...</div>
         </div>
+        <div class="bg-white p-4 rounded-2xl border border-sky-200 bg-sky-50/30 card-shadow">
+          <div class="text-[11px] font-semibold text-sky-600 flex items-center gap-1">
+            <span>💧</span> โอกาสเกิดฝนสูงสุด (Max Rain)
+          </div>
+          <div class="text-2xl font-bold font-mono-nums text-sky-700 mt-1" id="w-max-rain">--%</div>
+          <div class="text-[10px] text-sky-600/80 font-medium mt-1" id="w-rain-desc">โอกาสฝนตลอดทั้งวัน</div>
+        </div>
         <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow">
           <div class="text-[11px] font-semibold text-slate-400">ช่วงอุณหภูมิอากาศ</div>
           <div class="text-2xl font-bold font-mono-nums text-rose-600 mt-1" id="w-temp-range">-- °C</div>
@@ -1113,7 +1120,7 @@
             <span class="size-2 rounded-full bg-amber-500"></span>
             กราฟวิเคราะห์ความเข้มแสงแดดและสภาพอากาศตลอด 24 ชั่วโมง (Solar Irradiance Profile)
           </h3>
-          <span class="text-xs text-slate-400 font-medium">GHI, DNI, DHI, Temp & Cloud Cover</span>
+          <span class="text-xs text-slate-400 font-medium">GHI, DNI, DHI, Temp, Cloud & Rain Prob</span>
         </div>
         <div class="h-80 sm:h-96 relative">
           <canvas id="weather24hChart"></canvas>
@@ -1147,6 +1154,7 @@
                 <th class="px-3 py-2.5 text-center">DNI (W/m²)</th>
                 <th class="px-3 py-2.5 text-center">DHI (W/m²)</th>
                 <th class="px-3 py-2.5 text-center">เมฆ (%)</th>
+                <th class="px-3 py-2.5 text-center text-sky-600">โอกาสฝน (%)</th>
                 <th class="px-3 py-2.5 text-center">อุณหภูมิ (°C)</th>
               </tr>
             </thead>
